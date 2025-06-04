@@ -1,0 +1,65 @@
+trigger:
+- main
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
+  MAVEN_OPTS: '-Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
+
+steps:
+- task: Cache@2
+  inputs:
+    key: 'maven | "$(Agent.OS)" | **/pom.xml'
+    restoreKeys: |
+      maven | "$(Agent.OS)"
+      maven
+    path: $(MAVEN_CACHE_FOLDER)
+  displayName: Cache Maven local repo
+
+- task: SonarQubePrepare@4
+  inputs:
+    SonarQube: 'SonarQubeConnection'
+    scannerMode: 'Other'
+    extraProperties: |
+      sonar.projectKey=calculator-app
+      sonar.projectName=Calculator Application
+      sonar.sources=src/main/java
+      sonar.tests=src/test/java
+      sonar.java.binaries=target/classes
+      sonar.java.test.binaries=target/test-classes
+      sonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+
+- task: Maven@3
+  inputs:
+    mavenPomFile: 'pom.xml'
+    goals: 'clean verify'
+    options: '-Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
+    publishJUnitResults: true
+    testResultsFiles: '**/surefire-reports/TEST-*.xml'
+    javaHomeOption: 'JDKVersion'
+    jdkVersionOption: '1.8'
+    mavenVersionOption: 'Default'
+    mavenAuthenticateFeed: false
+    effectivePomSkip: false
+    sonarQubeRunAnalysis: false
+
+- task: SonarQubeAnalyze@4
+
+- task: SonarQubePublish@4
+  inputs:
+    pollingTimeoutSec: '300'
+
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'JUnit'
+    testResultsFiles: '**/surefire-reports/TEST-*.xml'
+    failTaskOnFailedTests: true
+
+- task: PublishCodeCoverageResults@1
+  inputs:
+    codeCoverageTool: 'JaCoCo'
+    summaryFileLocation: 'target/site/jacoco/jacoco.xml'
+    reportDirectory: 'target/site/jacoco'
