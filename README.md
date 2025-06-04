@@ -40,11 +40,11 @@ mvn exec:java -Dexec.mainClass="com.example.calculator.Calculator"
 
 ## Code Coverage
 
-JaCoCo is configured to enforce a minimum of 80% code coverage[3]. The current test suite achieves this requirement by testing all calculator methods including edge cases.
+JaCoCo is configured to enforce a minimum of 80% code coverage. The current test suite achieves this requirement by testing all calculator methods including edge cases.
 
 ## SonarQube Integration
 
-The project includes SonarQube configuration for static code analysis[4]. Configure your SonarQube server URL in the pom.xml or pass it as a parameter:
+The project includes SonarQube configuration for static code analysis. Configure your SonarQube server URL in the pom.xml or pass it as a parameter:
 
 ```
 mvn sonar:sonar -Dsonar.host.url=http://your-sonarqube-server:9000
